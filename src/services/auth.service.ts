@@ -9,22 +9,40 @@ export interface AuthUser {
 export class AuthService {
   async signUp(email: string, password: string): Promise<{ user: AuthUser | null; error: Error | null }> {
     try {
+      console.log('Attempting signup for:', email);
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
+        options: {
+          emailRedirectTo: window.location.origin,
+        }
       });
 
-      if (error) throw error;
+      console.log('Signup response:', { data, error });
+
+      if (error) {
+        console.error('Signup error:', error);
+        throw error;
+      }
+
+      if (!data.user) {
+        console.error('No user returned from signup');
+        throw new Error('No user returned from signup');
+      }
+
+      console.log('Signup successful for user:', data.user.id);
+      console.log('User confirmation status:', data.user.confirmed_at ? 'Confirmed' : 'Needs confirmation');
 
       return {
-        user: data.user ? {
+        user: {
           id: data.user.id,
           email: data.user.email!,
           createdAt: data.user.created_at,
-        } : null,
+        },
         error: null,
       };
     } catch (error) {
+      console.error('Signup catch block error:', error);
       return { user: null, error: error as Error };
     }
   }

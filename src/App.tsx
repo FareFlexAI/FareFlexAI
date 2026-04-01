@@ -41,12 +41,16 @@ const AppContent: React.FC = () => {
 
   const handleSignup = async (email: string, password: string) => {
     setAuthError('');
+    console.log('handleSignup called with email:', email);
     const { error: signupError } = await signUp(email, password);
+    console.log('signUp returned error:', signupError);
     if (signupError) {
       setAuthError(signupError.message);
       error('Failed to create account. Please try again.');
+      console.error('Signup failed:', signupError);
       throw signupError;
     }
+    console.log('Signup successful, showing success message');
     success('Account created successfully!');
   };
 

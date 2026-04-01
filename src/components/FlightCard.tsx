@@ -1,8 +1,6 @@
 import React, { useState } from 'react';
 import { Plane, Clock, TrendingDown, Bookmark } from 'lucide-react';
 import { Flight } from '../types';
-import { useAuth } from '../hooks/useAuth';
-import { useSavedTrips } from '../hooks/useSavedTrips';
 import { useApp } from '../context/AppContext';
 
 interface FlightCardProps {
@@ -10,10 +8,9 @@ interface FlightCardProps {
 }
 
 const FlightCard: React.FC<FlightCardProps> = ({ flight }) => {
-  const { user } = useAuth();
-  const { saveTrip, loading } = useSavedTrips(user?.id || null);
-  const { searchParams } = useApp();
+  const { searchParams, addSavedTrip } = useApp();
   const [saved, setSaved] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const getBadgeStyle = (badge?: string) => {
     switch (badge) {
@@ -41,26 +38,26 @@ const FlightCard: React.FC<FlightCardProps> = ({ flight }) => {
     }
   };
 
-  const handleSaveTrip = async () => {
-    if (!user || !searchParams) return;
+  const handleSaveTrip = () => {
+    if (!searchParams) return;
 
-    const { error } = await saveTrip({
+    setLoading(true);
+    addSavedTrip({
+      id: Date.now().toString(),
       origin: searchParams.from,
       destination: searchParams.to,
-      departDate: searchParams.departDate,
-      returnDate: searchParams.returnDate,
+      depart_date: searchParams.departDate,
+      return_date: searchParams.returnDate,
       flexibility: searchParams.flexibility,
       travelers: searchParams.travelers,
-      cabinClass: searchParams.cabinClass,
-      needsHotel: searchParams.needsHotel,
+      cabin_class: searchParams.cabinClass,
+      needs_hotel: searchParams.needsHotel,
       budget: searchParams.budget,
-      bestPrice: flight.price,
-      aiSummary: `Monitor this ${searchParams.from} to ${searchParams.to} trip for the best deals.`,
+      best_price: flight.price,
+      ai_summary: `Monitor this ${searchParams.from} to ${searchParams.to} trip for the best deals.`,
     });
-
-    if (!error) {
-      setSaved(true);
-    }
+    setSaved(true);
+    setLoading(false);
   };
 
   return (

@@ -1,15 +1,11 @@
 import React from 'react';
-import { Bookmark, Plus, Loader2 } from 'lucide-react';
+import { Bookmark, Plus } from 'lucide-react';
 import { useApp } from '../context/AppContext';
-import { useAuth } from '../hooks/useAuth';
-import { useSavedTrips } from '../hooks/useSavedTrips';
 import SavedTripCard from '../components/SavedTripCard';
 import { SavedTrip, SearchParams } from '../types';
 
 const SavedTripsScreen: React.FC = () => {
-  const { setCurrentScreen, setSearchParams } = useApp();
-  const { user } = useAuth();
-  const { trips, loading, deleteTrip } = useSavedTrips(user?.id || null);
+  const { setCurrentScreen, setSearchParams, savedTrips, removeSavedTrip } = useApp();
 
   const handleViewTrip = (trip: SavedTrip) => {
     const searchParams: SearchParams = {
@@ -28,8 +24,8 @@ const SavedTripsScreen: React.FC = () => {
     setCurrentScreen('results');
   };
 
-  const handleRemoveTrip = async (id: string) => {
-    await deleteTrip(id);
+  const handleRemoveTrip = (id: string) => {
+    removeSavedTrip(id);
   };
 
   return (
@@ -48,14 +44,9 @@ const SavedTripsScreen: React.FC = () => {
           </button>
         </div>
 
-        {loading ? (
-          <div className="bg-white rounded-2xl shadow-md p-8 text-center">
-            <Loader2 className="mx-auto mb-4 text-blue-600 animate-spin" size={48} />
-            <p className="text-gray-600">Loading your trips...</p>
-          </div>
-        ) : trips.length > 0 ? (
+        {savedTrips.length > 0 ? (
           <div className="space-y-4">
-            {trips.map((trip) => (
+            {savedTrips.map((trip) => (
               <SavedTripCard
                 key={trip.id}
                 trip={trip}
@@ -80,7 +71,7 @@ const SavedTripsScreen: React.FC = () => {
           </div>
         )}
 
-        {trips.length > 0 && (
+        {savedTrips.length > 0 && (
           <div className="mt-6 bg-gradient-to-r from-blue-600 to-blue-700 rounded-2xl p-5 text-white shadow-lg">
             <h3 className="font-bold text-lg mb-2">Price Alerts Active</h3>
             <p className="text-blue-100 text-sm">

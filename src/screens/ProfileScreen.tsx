@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { User, Plane, Bell, DollarSign, Globe, Settings, LogOut } from 'lucide-react';
+import { User, Plane, Bell, Globe, Settings, RefreshCw } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 
 const ProfileScreen: React.FC = () => {
@@ -14,14 +14,24 @@ const ProfileScreen: React.FC = () => {
   const [notifications, setNotifications] = useState(userProfile?.notificationsEnabled ?? true);
 
   const handleSave = () => {
-    setUserProfile({
+    const profile = {
       name: 'Travel Explorer',
       homeAirport,
       includeNearbyAirports: includeNearby,
       defaultFlexibility,
       preferredCurrency: currency,
       notificationsEnabled: notifications,
-    });
+    };
+    setUserProfile(profile);
+    localStorage.setItem('userProfile', JSON.stringify(profile));
+  };
+
+  const handleResetOnboarding = () => {
+    if (confirm('This will reset your app and show the onboarding again. Continue?')) {
+      localStorage.removeItem('hasCompletedOnboarding');
+      localStorage.removeItem('userProfile');
+      window.location.reload();
+    }
   };
 
   return (
@@ -148,20 +158,17 @@ const ProfileScreen: React.FC = () => {
         <div className="bg-white rounded-2xl shadow-md overflow-hidden">
           <button className="w-full flex items-center justify-between p-5 hover:bg-gray-50 transition-colors border-b border-gray-100">
             <div className="flex items-center gap-3">
-              <DollarSign className="text-gray-600" size={20} />
-              <span className="font-medium text-gray-700">Travel Preferences</span>
-            </div>
-          </button>
-          <button className="w-full flex items-center justify-between p-5 hover:bg-gray-50 transition-colors border-b border-gray-100">
-            <div className="flex items-center gap-3">
               <Settings className="text-gray-600" size={20} />
               <span className="font-medium text-gray-700">App Settings</span>
             </div>
           </button>
-          <button className="w-full flex items-center justify-between p-5 hover:bg-gray-50 transition-colors text-red-600">
+          <button
+            onClick={handleResetOnboarding}
+            className="w-full flex items-center justify-between p-5 hover:bg-gray-50 transition-colors text-blue-600"
+          >
             <div className="flex items-center gap-3">
-              <LogOut size={20} />
-              <span className="font-medium">Sign Out</span>
+              <RefreshCw size={20} />
+              <span className="font-medium">Reset Onboarding</span>
             </div>
           </button>
         </div>

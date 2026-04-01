@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { SearchParams, SavedTrip, UserProfile } from '../types';
 
 interface AppContextType {
@@ -22,10 +22,34 @@ const AppContext = createContext<AppContextType | undefined>(undefined);
 export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [currentScreen, setCurrentScreen] = useState('home');
   const [searchParams, setSearchParams] = useState<SearchParams | null>(null);
-  const [savedTrips, setSavedTrips] = useState<SavedTrip[]>([]);
-  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
-  const [hasCompletedOnboarding, setHasCompletedOnboarding] = useState(false);
+  const [savedTrips, setSavedTrips] = useState<SavedTrip[]>(() => {
+    const saved = localStorage.getItem('savedTrips');
+    return saved ? JSON.parse(saved) : [];
+  });
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(() => {
+    const saved = localStorage.getItem('userProfile');
+    return saved ? JSON.parse(saved) : null;
+  });
+  const [hasCompletedOnboarding, setHasCompletedOnboarding] = useState(() => {
+    const saved = localStorage.getItem('hasCompletedOnboarding');
+    return saved === 'true';
+  });
   const [showInsightDetails, setShowInsightDetails] = useState(false);
+
+  useEffect(() => {
+    localStorage.setItem('savedTrips', JSON.stringify(savedTrips));
+  }, [savedTrips]);
+
+  useEffect(() => {
+    if (userProfile) {
+      localStorage.setItem('userProfile', JSON.stringify(userProfile));
+    }
+  }, [userProfile]);
+
+  const updateOnboardingStatus = (value: boolean) => {
+    setHasCompletedOnboarding(value);
+    localStorage.setItem('hasCompletedOnboarding', value.toString());
+  };
 
   const addSavedTrip = (trip: SavedTrip) => {
     setSavedTrips(prev => [...prev, trip]);
@@ -48,7 +72,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         userProfile,
         setUserProfile,
         hasCompletedOnboarding,
-        setHasCompletedOnboarding,
+        setHasCompletedOnboarding: updateOnboardingStatus,
         showInsightDetails,
         setShowInsightDetails,
       }}

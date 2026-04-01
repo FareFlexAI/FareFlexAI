@@ -49,30 +49,43 @@ export class ProfileService {
 
   async createProfile(userId: string, data: Partial<OnboardingData>): Promise<{ profile: UserProfile | null; error: Error | null }> {
     try {
+      console.log('Creating profile for user:', userId, 'with data:', data);
+
       const existingProfile = await this.getProfile(userId);
+      console.log('Existing profile check:', existingProfile);
 
       if (existingProfile.error) {
+        console.error('Error getting existing profile:', existingProfile.error);
         throw existingProfile.error;
       }
 
+      const upsertData = {
+        id: userId,
+        home_airport: data.homeAirport,
+        nearby_airports_enabled: data.nearbyAirportsEnabled ?? true,
+        flexibility_default: data.flexibilityDefault ?? 'Exact',
+        preferred_currency: data.preferredCurrency ?? 'USD',
+        traveler_type: data.travelerType ?? 'Solo',
+        alerts_enabled: data.alertsEnabled ?? true,
+        onboarding_completed: true,
+      };
+
+      console.log('Upserting profile with data:', upsertData);
+
       const { data: upsertedData, error } = await supabase
         .from('user_profiles')
-        .upsert({
-          id: userId,
-          home_airport: data.homeAirport,
-          nearby_airports_enabled: data.nearbyAirportsEnabled ?? true,
-          flexibility_default: data.flexibilityDefault ?? 'Exact',
-          preferred_currency: data.preferredCurrency ?? 'USD',
-          traveler_type: data.travelerType ?? 'Solo',
-          alerts_enabled: data.alertsEnabled ?? true,
-          onboarding_completed: true,
-        }, {
+        .upsert(upsertData, {
           onConflict: 'id'
         })
         .select()
         .maybeSingle();
 
-      if (error) throw error;
+      console.log('Upsert result:', { upsertedData, error });
+
+      if (error) {
+        console.error('Upsert error:', error);
+        throw error;
+      }
 
       if (!upsertedData) {
         return { profile: null, error: new Error('Failed to create profile') };

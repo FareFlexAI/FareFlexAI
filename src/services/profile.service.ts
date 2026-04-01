@@ -2,42 +2,59 @@ import { supabase } from '../lib/supabase';
 import { UserProfile, OnboardingData } from '../types';
 
 export class ProfileService {
-  async getProfile(userId: string): Promise<{ profile: UserProfile | null; error: Error | null }> {
-    try {
-      const { data, error } = await supabase
-        .from('user_profiles')
-        .select('*')
-        .eq('id', userId)
-        .maybeSingle();
+  async getProfile(userId: string, retries = 3, delay = 500): Promise<{ profile: UserProfile | null; error: Error | null }> {
+    for (let attempt = 0; attempt <= retries; attempt++) {
+      try {
+        const { data, error } = await supabase
+          .from('user_profiles')
+          .select('*')
+          .eq('id', userId)
+          .maybeSingle();
 
-      if (error) throw error;
+        if (error) throw error;
 
-      if (!data) {
-        return { profile: null, error: null };
+        if (!data) {
+          if (attempt < retries) {
+            await new Promise(resolve => setTimeout(resolve, delay));
+            continue;
+          }
+          return { profile: null, error: null };
+        }
+
+        const profile: UserProfile = {
+          id: data.id,
+          full_name: data.full_name,
+          home_airport: data.home_airport,
+          nearby_airports_enabled: data.nearby_airports_enabled,
+          flexibility_default: data.flexibility_default,
+          preferred_currency: data.preferred_currency,
+          traveler_type: data.traveler_type,
+          alerts_enabled: data.alerts_enabled,
+          onboarding_completed: data.onboarding_completed,
+          created_at: data.created_at,
+          updated_at: data.updated_at,
+        };
+
+        return { profile, error: null };
+      } catch (error) {
+        if (attempt < retries) {
+          await new Promise(resolve => setTimeout(resolve, delay));
+          continue;
+        }
+        return { profile: null, error: error as Error };
       }
-
-      const profile: UserProfile = {
-        id: data.id,
-        full_name: data.full_name,
-        home_airport: data.home_airport,
-        nearby_airports_enabled: data.nearby_airports_enabled,
-        flexibility_default: data.flexibility_default,
-        preferred_currency: data.preferred_currency,
-        traveler_type: data.traveler_type,
-        alerts_enabled: data.alerts_enabled,
-        onboarding_completed: data.onboarding_completed,
-        created_at: data.created_at,
-        updated_at: data.updated_at,
-      };
-
-      return { profile, error: null };
-    } catch (error) {
-      return { profile: null, error: error as Error };
     }
+    return { profile: null, error: new Error('Failed to get profile after retries') };
   }
 
   async createProfile(userId: string, data: Partial<OnboardingData>): Promise<{ profile: UserProfile | null; error: Error | null }> {
     try {
+      const existingProfile = await this.getProfile(userId);
+
+      if (existingProfile.error) {
+        throw existingProfile.error;
+      }
+
       const { data: upsertedData, error } = await supabase
         .from('user_profiles')
         .upsert({

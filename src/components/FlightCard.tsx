@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { Plane, Clock, TrendingDown, Bookmark } from 'lucide-react';
+import { Plane, Clock, TrendingDown, Bookmark, Share2 } from 'lucide-react';
 import { Flight } from '../types';
 import { useApp } from '../context/AppContext';
+import { generateShareUrl, copyToClipboard } from '../utils/shareUtils';
 
 interface FlightCardProps {
   flight: Flight;
@@ -11,6 +12,7 @@ const FlightCard: React.FC<FlightCardProps> = ({ flight }) => {
   const { searchParams, addSavedTrip } = useApp();
   const [saved, setSaved] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   const getBadgeStyle = (badge?: string) => {
     switch (badge) {
@@ -58,6 +60,20 @@ const FlightCard: React.FC<FlightCardProps> = ({ flight }) => {
     });
     setSaved(true);
     setLoading(false);
+  };
+
+  const handleShare = async () => {
+    if (!searchParams) return;
+
+    const shareUrl = generateShareUrl({ flight, searchParams });
+
+    try {
+      await copyToClipboard(shareUrl);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (error) {
+      console.error('Failed to copy to clipboard:', error);
+    }
   };
 
   return (
@@ -120,6 +136,17 @@ const FlightCard: React.FC<FlightCardProps> = ({ flight }) => {
           Select Flight
         </button>
         <button
+          onClick={handleShare}
+          className={`px-5 py-3.5 rounded-xl font-bold transition-all duration-300 ${
+            copied
+              ? 'bg-green-100 text-green-700 border-2 border-green-300'
+              : 'bg-white text-blue-600 border-2 border-blue-600 hover:bg-blue-50'
+          }`}
+          title={copied ? 'Link copied!' : 'Share flight'}
+        >
+          <Share2 size={20} />
+        </button>
+        <button
           onClick={handleSaveTrip}
           disabled={loading || saved}
           className={`px-5 py-3.5 rounded-xl font-bold transition-all duration-300 ${
@@ -127,6 +154,7 @@ const FlightCard: React.FC<FlightCardProps> = ({ flight }) => {
               ? 'bg-green-100 text-green-700 border-2 border-green-300'
               : 'bg-white text-blue-600 border-2 border-blue-600 hover:bg-blue-50'
           }`}
+          title={saved ? 'Saved' : 'Save trip'}
         >
           <Bookmark size={20} fill={saved ? 'currentColor' : 'none'} />
         </button>

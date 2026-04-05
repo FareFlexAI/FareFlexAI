@@ -15,6 +15,8 @@ interface AppContextType {
   setHasCompletedOnboarding: (value: boolean) => void;
   showInsightDetails: boolean;
   setShowInsightDetails: (value: boolean) => void;
+  isSharedFlight: boolean;
+  setIsSharedFlight: (value: boolean) => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -35,6 +37,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     return saved === 'true';
   });
   const [showInsightDetails, setShowInsightDetails] = useState(false);
+  const [isSharedFlight, setIsSharedFlight] = useState(false);
 
   useEffect(() => {
     localStorage.setItem('savedTrips', JSON.stringify(savedTrips));
@@ -75,6 +78,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         setHasCompletedOnboarding: updateOnboardingStatus,
         showInsightDetails,
         setShowInsightDetails,
+        isSharedFlight,
+        setIsSharedFlight,
       }}
     >
       {children}

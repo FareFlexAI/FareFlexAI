@@ -25,6 +25,7 @@ A modern, mobile-first travel search application with AI-powered savings insight
 - AI-powered savings insights
 - Saved trips management
 - Price alerts
+- Share flight links with others
 
 ### User Profile
 - Editable user preferences

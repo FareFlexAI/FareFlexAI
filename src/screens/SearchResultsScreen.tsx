@@ -5,10 +5,11 @@ import AIInsightsPanel from '../components/AIInsightsPanel';
 import FlightCard from '../components/FlightCard';
 import HotelCard from '../components/HotelCard';
 import CalendarView from '../components/CalendarView';
+import SharedFlightBanner from '../components/SharedFlightBanner';
 import { mockFlights, mockHotels, mockAIInsights } from '../mockData';
 
 const SearchResultsScreen: React.FC = () => {
-  const { searchParams, setCurrentScreen } = useApp();
+  const { searchParams, setCurrentScreen, isSharedFlight, setIsSharedFlight } = useApp();
   const [activeTab, setActiveTab] = useState<'flights' | 'hotels' | 'calendar'>('flights');
   const [sortBy, setSortBy] = useState('price');
 
@@ -94,6 +95,10 @@ const SearchResultsScreen: React.FC = () => {
       </div>
 
       <div className="max-w-screen-sm mx-auto px-5 py-6 space-y-6">
+        {isSharedFlight && (
+          <SharedFlightBanner onDismiss={() => setIsSharedFlight(false)} />
+        )}
+
         <AIInsightsPanel insights={mockAIInsights} />
 
         {(activeTab === 'flights' || activeTab === 'hotels') && (

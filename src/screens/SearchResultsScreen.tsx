@@ -6,6 +6,9 @@ import FlightCard from '../components/FlightCard';
 import HotelCard from '../components/HotelCard';
 import CalendarView from '../components/CalendarView';
 import SharedFlightBanner from '../components/SharedFlightBanner';
+import BestDealSites from '../components/BestDealSites';
+import AISavingsInsights from '../components/AISavingsInsights';
+import SmartStrategy from '../components/SmartStrategy';
 import { mockFlights, mockHotels, mockAIInsights } from '../mockData';
 
 const SearchResultsScreen: React.FC = () => {
@@ -131,6 +134,10 @@ const SearchResultsScreen: React.FC = () => {
             {mockFlights.map((flight) => (
               <FlightCard key={flight.id} flight={flight} />
             ))}
+
+            <BestDealSites />
+            <AISavingsInsights />
+            <SmartStrategy />
           </div>
         )}
 
